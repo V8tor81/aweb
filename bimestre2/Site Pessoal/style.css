@@ -30,6 +30,16 @@ header {
 .header-content {
     margin-top: 250px; 
     margin-left: 450px;
+    
+}
+
+#Hero {
+    width: 100%; /* Ocupa toda a largura da tela */
+    height: 100vh; /* Ocupa toda a altura da tela */
+    text-align: center; /* Centraliza o texto */
+    background-size: cover; /* Ajusta o fundo para cobrir toda a seção */
+    background-position: center; /* Centraliza a imagem de fundo */
+    display: block;
 }
 
 h1{
@@ -43,6 +53,9 @@ color: #BB856B;
 
 body{
     background-color: #FBD6BB;
+    max-width: 100%;
+    max-height: 100%;
+    
 }
 .redimensionada {
     width: 50px;
@@ -106,10 +119,19 @@ body{
     color: #BB856B;
 }
 
-
+#Home p {
+    text-align: justify; /* Justifica o texto */
+    width: 60%; /* Define a largura do parágrafo */
+    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
+}
 #Curiosidades {
     text-align: center;
     margin-top: 20px;
+}
+#Curiosidades p {
+    text-align: justify; /* Justifica o texto */
+    width: 60%; /* Define a largura do parágrafo */
+    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
 }
 
 .cards-container {
@@ -264,11 +286,12 @@ p {
     font-size: 18px; 
     color: #555;  
     display: inline-block;
+    
+}
+#Habilidades li:hover {
+    background-color: #FFDEB2; 
 }
 
-#Habilidades:hover {
-    transform: translateY(-10px); 
-}
 
 
 .fotohabi {
@@ -288,7 +311,7 @@ p {
 .fotocausos {
     float: right;  
     margin-top: -270px; 
-    margin-right: 20px;  
+    
 }
 
 .diminuircausos {
@@ -333,4 +356,10 @@ footer {
     width: 24px;
     height: 24px;
     margin-right: 8px;
+}
+
+#Causos p {
+    text-align: justify; /* Justifica o texto */
+    width: 60%; /* Define a largura do parágrafo */
+    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
 }
