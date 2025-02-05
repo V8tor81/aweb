@@ -56,7 +56,6 @@ h1 {
 }
 
 .imagem-pequena {
-    width: 200px; /* Define a largura */
-    height: auto; /* Mantém a proporção */
-}
+    width: 100px; 
+    height: auto;
 
