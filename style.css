@@ -55,17 +55,8 @@ h1 {
     width: 400px;
 }
 
-.percent60 {
-    color: green; /* Cor para o 60% */
-    font-weight: bold;
+.imagem-pequena {
+    width: 200px; /* Define a largura */
+    height: auto; /* Mantém a proporção */
 }
 
-.percent30 {
-     background-color:  #FFAC8E; /* Cor para o 30% */
-    font-weight: bold;
-}
-
-.percent10 {
-    background-color: red; /* Cor para o 10% */
-    font-weight: bold;
-}
