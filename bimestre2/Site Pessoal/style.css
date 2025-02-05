@@ -87,7 +87,7 @@ body{
 
 
 .fotoh{
-    margin-left: 1500px;
+    margin-left: 1000px;
     margin-top: -350px;
     
 }
@@ -119,15 +119,15 @@ body{
 
 .card {
     display: inline-block; 
-    width: 30%; 
-    padding: 20px;
+    width: 20%; 
+    padding: 10px;
     background-color: #FBD6BB;
     color: #FBD6BB;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
     transition: transform 0.3s ease-in-out;
-    margin: 10px; 
+    margin: 15px; 
     vertical-align: top; 
 }
 
@@ -136,7 +136,7 @@ body{
 }
 
 .card img {
-    width: 80%;  
+    width: 70%;  
     height: 400px;  
     object-fit: contain; 
     border-radius: 5px;
@@ -266,7 +266,9 @@ p {
     display: inline-block;
 }
 
-
+#Habilidades:hover {
+    transform: translateY(-10px); 
+}
 
 
 .fotohabi {
