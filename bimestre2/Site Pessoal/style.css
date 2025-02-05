@@ -21,7 +21,7 @@ header {
     width: 100%;
     background-color: #FBD6BB;
     color: #BB856B;
-    padding: 10px 0;
+    padding: 1px 0;
     z-index: 1000;
 }
 
@@ -29,17 +29,11 @@ header {
 .header-content {
     margin-top: 250px; 
     margin-left: 450px;
+    height: 55vh;
     
 }
 
-#Hero {
-    width: 100%; /* Ocupa toda a largura da tela */
-    height: 100vh; /* Ocupa toda a altura da tela */
-    text-align: center; /* Centraliza o texto */
-    background-size: cover; /* Ajusta o fundo para cobrir toda a seção */
-    background-position: center; /* Centraliza a imagem de fundo */
-    display: block;
-}
+
 
 h1{
     font-family: "Poppins";
@@ -100,7 +94,7 @@ body{
 
 .fotoh{
     margin-left: 1000px;
-    margin-top: -350px;
+    margin-top: -500px;
     
 }
 
@@ -309,7 +303,7 @@ p {
 
 .fotocausos {
     float: right;  
-    margin-top: -270px; 
+    margin-top: -300px; 
     
 }
 
