@@ -54,3 +54,18 @@ h1 {
 .topo {
     width: 400px;
 }
+
+.percent60 {
+    color: green; /* Cor para o 60% */
+    font-weight: bold;
+}
+
+.percent30 {
+    color: orange; /* Cor para o 30% */
+    font-weight: bold;
+}
+
+.percent10 {
+    color: red; /* Cor para o 10% */
+    font-weight: bold;
+}
