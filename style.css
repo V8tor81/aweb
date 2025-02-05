@@ -66,6 +66,6 @@ h1 {
 }
 
 .percent10 {
-    color: red; /* Cor para o 10% */
+    background-color: red; /* Cor para o 10% */
     font-weight: bold;
 }
