@@ -81,7 +81,6 @@ p{
 }
 
 .logo-container {
-    display: inline-block;
     align-items: center;
 }
 .logo-container img {
@@ -112,13 +111,12 @@ p{
     height: 100px;
     border-radius: 50%;
     background: conic-gradient(#BB856B var(--percent), #fff 0deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: #FFF0E0;
     font-size: 18px;
     font-weight: bold;
     position: relative;
+    text-align: center;
+    line-height: 100px;  /* Centraliza verticalmente o texto */
 }
 
 .circle::before {
@@ -318,4 +316,4 @@ footer {
     width: 24px;
     height: 24px;
     margin-right: 8px;
-} 
+}
