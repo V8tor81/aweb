@@ -22,11 +22,9 @@ header {
     left: 0;
     width: 100%;
     background-color: #FBD6BB;
-    color: #BB856B;
     padding: 1px 0;
     z-index: 1000;
 }
-
 
 .header-content {
     margin-top: 250px; 
@@ -35,12 +33,10 @@ header {
 }
 
 h1{
-    font-family: "Poppins";
     color: #BB856B;
-    }
+}
 p{
-font-family: "Poppins";
-color: #BB856B;
+    color: #BB856B;
 }
 
 .redimensionada {
@@ -82,7 +78,6 @@ color: #BB856B;
 .fotoh{
     margin-left: 1000px;
     margin-top: -500px;
-    
 }
 
 .logo-container {
@@ -91,7 +86,6 @@ color: #BB856B;
 }
 .logo-container img {
     margin-top: -15;
-
 }
 .logo-container span {
     display: inline-block;
@@ -147,11 +141,11 @@ p {
     color: #333;
 }
 
-/* Definição das porcentagens */
-.chart:nth-child(1) .circle { --percent: 360deg; } /* 100% */
-.chart:nth-child(2) .circle { --percent: 356.4deg; } /* 99% */
-.chart:nth-child(3) .circle { --percent: 316.8deg; } /* 88% */
-.chart:nth-child(4) .circle { --percent: 270deg; } /* 75% */
+.chart:nth-child(1) .circle { --percent: 360deg; }
+.chart:nth-child(2) .circle { --percent: 356.4deg; }
+.chart:nth-child(3) .circle { --percent: 316.8deg; }
+.chart:nth-child(4) .circle { --percent: 270deg; }
+
 #Curiosidades {
     text-align: center;
     margin-top: 20px;
@@ -192,7 +186,6 @@ p {
     border-radius: 5px;
 }
 
-
 .educacao-tabela {
     width: 50%;
     margin: 20px auto;
@@ -221,7 +214,6 @@ p {
     background-color: #FFDEB2; 
 }
 
-
 h2 {
     font-size: 2em;
     text-align: center;
@@ -230,7 +222,6 @@ h2 {
     text-align: left; 
     margin-left: 0;
 }
-
 
 section {
     background-color:  #FFAC8E; 
@@ -243,13 +234,10 @@ section {
     font-size: 0;
 }
 
-
 #Habilidades ul {
-    display: inline-block;
-    flex-wrap: wrap; 
-    justify-content: center; 
-    list-style-type: none;  
+    text-align: center;
     padding: 0;
+    list-style-type: none;  
 }
 
 #Habilidades li {
@@ -263,13 +251,11 @@ section {
     font-size: 18px; 
     color: #555;  
     display: inline-block;
-    
 }
+
 #Habilidades li:hover {
     background-color: #FFDEB2; 
 }
-
-
 
 .fotohabi {
     float: left; 
@@ -284,12 +270,11 @@ section {
     margin-top: -250;
 }
 
-
 .fotocausos {
     float: right;  
     margin-top: -300px; 
-    
 }
+
 #Causos p {
     text-align: justify; 
     width: 60%;
@@ -300,11 +285,8 @@ section {
     width: 80%;  
     max-width: 240px; 
     border-radius: 8px;  
-    margin-top: 0;  /
+    margin-top: 0;  
 }
-
-
-
 
 footer {
     background-color: #BB856B;
@@ -320,24 +302,20 @@ footer {
 }
 
 .footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+    text-align: center;
     margin-top: 10px;
 }
 
 .footer-links a {
-    display: flex;
-    align-items: center;
+    display: inline-block;
     text-decoration: none;
     color: #FBD6BB;
     font-size: 1em;
+    margin-right: 20px;
 }
 
 .footer-links img {
     width: 24px;
     height: 24px;
     margin-right: 8px;
-}
-
-
+} 
