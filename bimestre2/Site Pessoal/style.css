@@ -5,12 +5,12 @@
     padding:0;
 }
 
-/* Estilos gerais */
+
 section {
-    background-color:  #FFAC8E; /* Cor de fundo para todas as seções */
+    background-color:  #FFAC8E; 
     padding: 20px;
     margin-top: 20px;
-    scroll-margin-top: 80px;  /* Espaço para o cabeçalho fixo não cobrir */
+    scroll-margin-top: 80px;  
 }
 
 
@@ -113,18 +113,18 @@ body{
 }
 
 #Home p {
-    text-align: justify; /* Justifica o texto */
-    width: 60%; /* Define a largura do parágrafo */
-    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
+    text-align: justify; 
+    width: 60%;
+    margin: 0 auto;
 }
 #Curiosidades {
     text-align: center;
     margin-top: 20px;
 }
 #Curiosidades p {
-    text-align: justify; /* Justifica o texto */
-    width: 60%; /* Define a largura do parágrafo */
-    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
+    text-align: justify; 
+    width: 60%; 
+    margin: 0 auto; 
 }
 
 .cards-container {
@@ -352,7 +352,7 @@ footer {
 }
 
 #Causos p {
-    text-align: justify; /* Justifica o texto */
-    width: 60%; /* Define a largura do parágrafo */
-    margin: 0 auto; /* Centraliza e cria margens iguais nas laterais */
+    text-align: justify; 
+    width: 60%;
+    margin: 0 auto; 
 }
