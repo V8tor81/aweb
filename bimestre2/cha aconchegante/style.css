@@ -1,1 +1,246 @@
+* {
+    margin: 0;
+    padding: 0;
+    opacity: 0.9;
+    font-family: Helvetica, Arial;
+}
+
+body {
+    background: black;
+    color: seashell;
+    font-size: 22px;
+}
+
+header {
+    
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: black;
+    color: seashell;
+    z-index: 1;
+}
+
+
+nav {
+    display: flex;
+    justify-content: flex-end;
+    background-color: black; 
+    padding: 10px; 
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    display: inline;
+}
+
+nav ul li a { 
+    color: seashell; 
+    font-size: 22px;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 69px;
+    background-color: black;
+    color: seashell;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+.logo {
+    width: 50px;
+    height: 10px;
+}
+
+.hero {
+    position: relative; 
+    height: 100vh; 
+    margin-bottom: 10px;
+    
+}
+
+.hero-content {
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    color: white;
+    text-align: center;
+    z-index: 2; 
+}
+
+.hero h1 {
+    font-size: 3em;
+    margin: 0;
+}
+
+.hero p {
+    font-size: 1.5em;
+}
+
+.missao-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.img1 {
+    width: 100%;
+    height: 700px;
+    display: block;
+    object-fit: cover;
+    margin-bottom: 30px;
+    
+}
+
+.conteudo-missao {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    background-color: black;
+    color: seashell;
+    text-align: center;
+    padding: 20px;
+}
+
+.secao-mensal {
+    width: 1000px; 
+    margin: 0 auto;
+    text-align: center; 
+}
+
+.container-produtos {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    margin-top: 20px;
+}
+
+.produto {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+}
+
+.produto img {
+    width: 300px; 
+    height: 200px;
+    object-fit: cover; 
+}
+
+.produto p {
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+
+.imglocal {
+    width: 1200px;
+    height: 500px;
+    display: block;
+    object-fit: cover;
+    margin: 0 auto; 
+}
+
+
+
+.secao-local h2 {
+    position: absolute;
+    margin-top: -460px; 
+    text-align: center;
+    width: 100%;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+
+.locais {
+    position: absolute;
+    margin-top: -380px; 
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 40px; 
+}
+
+
+.local {
+    background-color: black;
+    text-align: center;
+    color: seashell;
+    width: 300px;
+    height: 150px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+
+.local h3 {
+    margin-bottom: 10px;
+}
+
+.local p {
+    margin-bottom: 10px;
+}
+
+.local p:last-child {
+    margin-bottom: 0;
+}
+
+
+
+footer {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    position: relative;
+}
+
+
+.informacoes {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    gap: 10px; 
+}
+
+
+.informacoes h5:last-child {
+    margin-top: 10px; 
+}
+
+
+footer p {
+    position: absolute;
+    left: 20px;
+    bottom: 10px; 
+    font-size: 14px;
+}
 
