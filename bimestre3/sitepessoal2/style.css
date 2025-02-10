@@ -11,12 +11,12 @@ body { font-family: "Poppins",Arial, sans-serif;
     gap: 10px;
     background-color: #FFAC8E;
  }
-header {
+ header {
     grid-column: span 12;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
+    display: flex; /* Ativa o Flexbox no container */
+    justify-content: space-between; /* Alinha os itens no eixo horizontal com espaçamento igual entre eles */
+    align-items: center; /* Alinha os itens verticalmente no centro */
+    padding: 10px; /* Adiciona um pouco de espaçamento dentro do header */
     height: 100px;
     background: #FBD6BB;
     color: #BB856B;
@@ -24,23 +24,27 @@ header {
     top: 0;
     width: 100%;
     z-index: 1000;
-}
+  }
+
 header img { height: 60px; }
-nav a { color: #BB856B; 
-    text-decoration: none; 
-    margin: 0 15px; 
-    display: flex; 
-    align-items: center; }
+nav a {
+    margin-left: 20px; /* Espaçamento entre os links */
+    text-decoration: none; /* Remove o sublinhado dos links */
+    color:  #BB856B; /* Altera a cor do texto (pode ajustar conforme preferir) */
+    font-weight: bold; /* Deixa o texto em negrito */
+  }
 nav a i { margin-right: 5px; }
 .hero {
     grid-column: span 12;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    text-align: center;
     height: 100vh;
     padding: 20px;
     background: #FBD6BB;
     margin-top: 100px;
+    color: #765148;    
 }
 .hero img { max-width: 50%; }
 .hero p{
@@ -55,9 +59,11 @@ nav a i { margin-right: 5px; }
     color: #FBD6BB;
     border: none;
     cursor: pointer;
+    position: absolute;
     border-radius: 5px;
-    
-}
+    transform: translateX(40%); /* Move o botão para a direita, centralizando-o com o texto */
+  }
+
 .botão a {
     text-decoration: none; 
     color: #FBD6BB; 
@@ -159,3 +165,7 @@ gap: 10px; /* Espaço entre o ícone e o texto */
 .footer-info i {
 font-size: 20px; /* Tamanho dos ícones */
 }
+
+
+
+
