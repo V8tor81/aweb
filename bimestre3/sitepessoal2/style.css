@@ -13,10 +13,10 @@ body { font-family: "Poppins",Arial, sans-serif;
  }
  header {
     grid-column: span 12;
-    display: flex; /* Ativa o Flexbox no container */
-    justify-content: space-between; /* Alinha os itens no eixo horizontal com espaçamento igual entre eles */
-    align-items: center; /* Alinha os itens verticalmente no centro */
-    padding: 10px; /* Adiciona um pouco de espaçamento dentro do header */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px; 
     height: 100px;
     background: #FBD6BB;
     color: #BB856B;
@@ -28,10 +28,10 @@ body { font-family: "Poppins",Arial, sans-serif;
 
 header img { height: 60px; }
 nav a {
-    margin-left: 20px; /* Espaçamento entre os links */
-    text-decoration: none; /* Remove o sublinhado dos links */
-    color:  #BB856B; /* Altera a cor do texto (pode ajustar conforme preferir) */
-    font-weight: bold; /* Deixa o texto em negrito */
+    margin-left: 20px; 
+    text-decoration: none; 
+    color:  #BB856B; 
+    font-weight: bold; 
   }
 nav a i { margin-right: 5px; }
 .hero {
@@ -61,7 +61,7 @@ nav a i { margin-right: 5px; }
     cursor: pointer;
     position: absolute;
     border-radius: 5px;
-    transform: translateX(40%); /* Move o botão para a direita, centralizando-o com o texto */
+    transform: translateX(40%); 
   }
 
 .botão a {
@@ -70,12 +70,12 @@ nav a i { margin-right: 5px; }
 }
 
 .section {
-    grid-column: 3 / span 8; /* Ocupa 8 colunas começando da 3ª para ficar centralizado */
-    margin-top: 100px; /* Distância de 100px para o Hero */
-    text-align: center; /* Texto centralizado */
+    grid-column: 3 / span 8; 
+    margin-top: 100px; 
+    text-align: center; 
     background-color: #FFAC8E;
-    min-height: 100vh; /* Faz cada seção ocupar no mínimo a altura total da tela */
-    padding: 20px; /* Garante espaçamento interno */
+    min-height: 100vh; 
+    padding: 20px; 
     
 }
 
@@ -83,28 +83,28 @@ nav a i { margin-right: 5px; }
 
 
 .section h2 {
-    text-align: left; /* Título alinhado à esquerda */
+    text-align: left; 
     color: #BB856B;
 }
 
 #curiosidades {
-    grid-column: 3 / span 8; /* Ocupa 8 colunas do grid */
-    margin-top: 100px; /* Distância de 100px para o SOBRE MIM */
+    grid-column: 3 / span 8; 
+    margin-top: 100px; 
 }
 
 #curiosidades h2 {
-    text-align: left; /* Título alinhado à esquerda */
+    text-align: left; 
 }
 
 .cards {
     display: grid;
-    grid-template-columns: repeat(12, 1fr); /* Mantém o layout de 12 colunas */
+    grid-template-columns: repeat(12, 1fr); 
     gap: 10px;
     margin-top: 20px;
 }
 
 .card {
-    grid-column: span 6; /* Cada card ocupa 6 colunas (2 cards por linha) */
+    grid-column: span 6; 
     padding: 20px;
     border: 1px solid #ccc;
     text-align: center;
@@ -129,7 +129,7 @@ nav a i { margin-right: 5px; }
 footer {
 grid-column: span 12;
 width: 100%;
-height: 200px; /* Define a altura de 200px */
+height: 200px; 
 background-color: #BB856B;
 color: #FBD6BB;
 text-align: center;
@@ -148,22 +148,22 @@ justify-content: center;
 gap: 20px;
 }
 .footer-info a {
-color: white; /* Mantém a cor branca */
-text-decoration: none; /* Remove o sublinhado */
+color: white; 
+text-decoration: none; 
 }
 
 .footer-info a:hover {
-color: #ccc; /* Muda a cor ao passar o mouse (opcional) */
+color: #ccc; 
 }
 
 .footer-info p {
 display: flex;
 align-items: center;
-gap: 10px; /* Espaço entre o ícone e o texto */
+gap: 10px; 
 }
 
 .footer-info i {
-font-size: 20px; /* Tamanho dos ícones */
+font-size: 20px; 
 }
 
 @media screen and (max-width: 390px) {
@@ -173,7 +173,7 @@ font-size: 20px; /* Tamanho dos ícones */
         
     }
 
-    /* HEADER */
+
     header {
         grid-column: span 4;
         width: 90%;
@@ -194,46 +194,46 @@ font-size: 20px; /* Tamanho dos ícones */
     
     header nav a {
         text-decoration: none;
-        display: inline-flex; /* Mantém o link visível para os ícones */
+        display: inline-flex;
         justify-content: center;
         align-items: center;
         padding: 10px;
     }
     
     header nav a span {
-        display: none; /* Esconde apenas o texto, mantendo os ícones */
+        display: none; 
     }
     
     header nav a i {
         align-items: center;
-        font-size: 24px; /* Mantém os ícones visíveis */
+        font-size: 24px; 
         
     }
     
     
    
     
-    /* HERO */
+    
     .hero {
         grid-column: span 4;
         width: 100%;
-        min-height: 100vh; /* Garante que ocupe toda a tela */
+        min-height: 100vh; 
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start; /* Mantém o conteúdo no topo */
+        justify-content: flex-start; 
         text-align: center;
         padding: 20px;
-        margin: 0; /* Remove qualquer margem extra */
-        position: relative; /* Mantém a posição normal sem deslocamentos */
+        margin: 0; 
+        position: relative; 
     }
     
 
     .hero img {
-        order: -1; /* Move a imagem para o topo */
+        order: -1; 
         max-width: 80%;
         margin-bottom: 20px;
-        margin-top: 0; /* Evita espaços extras */
+        margin-top: 0; 
     }
     
 
@@ -241,7 +241,7 @@ font-size: 20px; /* Tamanho dos ícones */
         color: #BB856B;
     }
 
-    /* SOBRE MIM */
+  
     .section {
         grid-column: span 4;
         margin-top: 100px;
@@ -252,7 +252,7 @@ font-size: 20px; /* Tamanho dos ícones */
         text-align: center;
     }
 
-    /* CURIOSIDADES */
+    
     #curiosidades {
         grid-column: span 4;
         margin-top: 100px;
