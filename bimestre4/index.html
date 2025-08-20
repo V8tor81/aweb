@@ -4,68 +4,32 @@
   <meta charset="UTF-8">
   <title>Monitor de Batimentos Cardíacos</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    video, canvas {
-      display: none;
-    }
-    #bpm {
-      font-size: 2em;
-      margin-top: 20px;
-    }
-    #alerta {
-      color: red;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    video { display: none; }
+    canvas { display: none; }
+    #bpm { font-size: 2em; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>Batimentos Cardíacos com a Câmera</h1>
-  <p>Coloque o dedo sobre a câmera traseira. A lanterna será ativada automaticamente (se suportado).</p>
+  <p>Coloque o dedo sobre a câmera traseira com a lanterna ligada.</p>
   <video id="video" autoplay></video>
   <canvas id="canvas" width="100" height="100"></canvas>
   <div id="bpm">BPM: --</div>
-  <div id="alerta"></div>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const bpmDisplay = document.getElementById('bpm');
-    const alerta = document.getElementById('alerta');
+
     let reds = [];
     let timestamps = [];
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then(stream => {
         video.srcObject = stream;
-
-        // Tenta ativar a lanterna (torch) se suportado
-        const track = stream.getVideoTracks()[0];
-        try {
-          const imageCapture = new ImageCapture(track);
-          imageCapture.getPhotoCapabilities().then(cap => {
-            if (cap.torch) {
-              track.applyConstraints({ advanced: [{ torch: true }] });
-              alerta.textContent = "Lanterna ativada!";
-            } else {
-              alerta.textContent = "Seu dispositivo não permite ativar a lanterna via navegador.";
-            }
-          }).catch(() => {
-            alerta.textContent = "Não foi possível verificar suporte à lanterna.";
-          });
-        } catch (e) {
-          alerta.textContent = "Lanterna não suportada neste navegador.";
-        }
-
         setInterval(processFrame, 100); // Captura a cada 100ms
-      })
-      .catch(() => {
-        alerta.textContent = "Permissão de câmera negada ou dispositivo incompatível.";
       });
 
     function processFrame() {
