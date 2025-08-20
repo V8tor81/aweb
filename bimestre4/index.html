@@ -4,10 +4,18 @@
   <meta charset="UTF-8">
   <title>Monitor de Batimentos Cardíacos</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; }
-    video { display: none; }
-    canvas { display: none; }
-    #bpm { font-size: 2em; margin-top: 20px; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    video, canvas {
+      display: none;
+    }
+    #bpm {
+      font-size: 2em;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -22,15 +30,25 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const bpmDisplay = document.getElementById('bpm');
-
     let reds = [];
     let timestamps = [];
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        video.srcObject = stream;
-        setInterval(processFrame, 100); // Captura a cada 100ms
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    }).then(stream => {
+      video.srcObject = stream;
+
+      // Tenta ativar a lanterna (nem todos navegadores suportam)
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new ImageCapture(track);
+      imageCapture.getPhotoCapabilities().then(capabilities => {
+        if (capabilities.torch) {
+          track.applyConstraints({ advanced: [{ torch: true }] });
+        }
       });
+
+      setInterval(processFrame, 100); // Captura a cada 100ms
+    });
 
     function processFrame() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
