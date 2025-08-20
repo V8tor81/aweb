@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Monitor de Batimentos Cardíacos</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    video { display: none; }
+    canvas { display: none; }
+    #bpm { font-size: 2em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Batimentos Cardíacos com a Câmera</h1>
+  <p>Coloque o dedo sobre a câmera traseira com a lanterna ligada.</p>
+  <video id="video" autoplay></video>
+  <canvas id="canvas" width="100" height="100"></canvas>
+  <div id="bpm">BPM: --</div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const bpmDisplay = document.getElementById('bpm');
+
+    let reds = [];
+    let timestamps = [];
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        video.srcObject = stream;
+        setInterval(processFrame, 100); // Captura a cada 100ms
+      });
+
+    function processFrame() {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let sum = 0;
+      for (let i = 0; i < frame.data.length; i += 4) {
+        sum += frame.data[i]; // canal vermelho
+      }
+      const avgRed = sum / (frame.data.length / 4);
+      reds.push(avgRed);
+      timestamps.push(Date.now());
+
+      if (reds.length > 100) {
+        detectBeats();
+        reds = [];
+        timestamps = [];
+      }
+    }
+
+    function detectBeats() {
+      let beats = 0;
+      for (let i = 1; i < reds.length - 1; i++) {
+        if (reds[i] > reds[i - 1] && reds[i] > reds[i + 1]) {
+          beats++;
+        }
+      }
+      const duration = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
+      const bpm = Math.round((beats / duration) * 60);
+      bpmDisplay.textContent = `BPM: ${bpm}`;
+    }
+  </script>
+</body>
+</html>
