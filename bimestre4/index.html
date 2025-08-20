@@ -8,61 +8,29 @@
     video { display: none; }
     canvas { display: none; }
     #bpm { font-size: 2em; margin-top: 20px; }
-    button { padding: 10px 20px; font-size: 16px; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>Batimentos Cardíacos com a Câmera</h1>
-  <p>Coloque o dedo sobre a câmera traseira. A lanterna será ligada automaticamente se for suportada.</p>
-  <video id="video" autoplay playsinline></video>
+  <p>Coloque o dedo sobre a câmera traseira com a lanterna ligada.</p>
+  <video id="video" autoplay></video>
   <canvas id="canvas" width="100" height="100"></canvas>
   <div id="bpm">BPM: --</div>
-  <button id="iniciar">Iniciar Medição</button>
-  <button id="parar" style="display:none;">Parar</button>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const bpmDisplay = document.getElementById('bpm');
-    const iniciarBtn = document.getElementById('iniciar');
-    const pararBtn = document.getElementById('parar');
 
     let reds = [];
     let timestamps = [];
-    let stream = null;
-    let track = null;
-    let intervalId = null;
 
-    async function iniciarMedicao() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { exact: "environment" },
-            width: 1280,
-            height: 720
-          }
-        });
-
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
         video.srcObject = stream;
-        track = stream.getVideoTracks()[0];
-
-        // Tenta ligar a lanterna
-        try {
-          await track.applyConstraints({ advanced: [{ torch: true }] });
-          console.log("Lanterna ligada com sucesso");
-        } catch (e) {
-          console.warn("Não foi possível ativar a lanterna:", e);
-        }
-
-        intervalId = setInterval(processFrame, 100);
-
-        iniciarBtn.style.display = 'none';
-        pararBtn.style.display = 'inline-block';
-      } catch (err) {
-        alert("Erro ao acessar a câmera: " + err.message);
-      }
-    }
+        setInterval(processFrame, 100); // Captura a cada 100ms
+      });
 
     function processFrame() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -93,17 +61,6 @@
       const bpm = Math.round((beats / duration) * 60);
       bpmDisplay.textContent = `BPM: ${bpm}`;
     }
-
-    function pararMedicao() {
-      clearInterval(intervalId);
-      if (track) track.stop();
-      if (video.srcObject) video.srcObject = null;
-      iniciarBtn.style.display = 'inline-block';
-      pararBtn.style.display = 'none';
-    }
-
-    iniciarBtn.addEventListener('click', iniciarMedicao);
-    pararBtn.addEventListener('click', pararMedicao);
   </script>
 </body>
 </html>
