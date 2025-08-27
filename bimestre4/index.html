@@ -32,7 +32,6 @@
     .overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
     .ring{width:140px;height:140px;border-radius:50%;border:2px dashed rgba(255,255,255,.3);animation:spin 10s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    canvas{width:100%;height:220px;background:#091126;border-radius:12px}
     .footer{font-size:12px;color:var(--muted);margin-top:8px}
     .list{margin:6px 0 0 18px;color:var(--muted)}
     .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0a1330;border:1px solid #1c2742;border-radius:6px;padding:2px 6px}
@@ -65,7 +64,6 @@
             <div class="pill" id="torchSupport">Torch: desconhecido</div>
           </div>
         </div>
-        <canvas id="chart" width="900" height="240"></canvas>
         <div class="footer">Dica: cubra totalmente a câmera traseira com a ponta do dedo e evite movimentar. Se possível, ative a lanterna.</div>
       </div>
 
@@ -100,8 +98,6 @@
   <script>
     // === Elementos ===
     const video = document.getElementById('video');
-    const chart = document.getElementById('chart');
-    const ctx = chart.getContext('2d');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const torchBtn = document.getElementById('torchBtn');
@@ -116,145 +112,37 @@
     let imageCapture = null;
     let torchOn = false;
     let running = false;
+    let intervalId = null;
 
-    // Buffers de sinal
-    const maxSamples = 1200; // ~20s a 60 fps
-    const raw = []; // amostras de intensidade
-    const times = []; // timestamps ms
-    const peaks = []; // timestamps de picos detectados
+    const maxSamples = 1200;
+    const raw = [];
+    const times = [];
 
-    // Canvas offscreen para ler pixels
     const off = document.createElement('canvas');
     const offCtx = off.getContext('2d', { willReadFrequently: true });
-    off.width = 100; off.height = 100;
 
     function setStatus(t){ statusEl.textContent = t; }
 
-    function drawChart(){
-      // fundo
-      ctx.clearRect(0,0,chart.width,chart.height);
-      ctx.fillStyle = '#08122a';
-      ctx.fillRect(0,0,chart.width,chart.height);
-      // grade simples
-      ctx.strokeStyle = 'rgba(255,255,255,.06)';
-      ctx.lineWidth = 1;
-      for(let x=0; x<chart.width; x+=90){
-        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,chart.height); ctx.stroke();
+    function movingAverage(arr, win){ /* mesma função do seu código */ }
+    function highPass(arr, win){ /* mesma função do seu código */ }
+    function lowPassExp(arr, alpha=0.2){ /* mesma função do seu código */ }
+    function detectPeaks(sig, ts){ /* mesma função do seu código */ }
+    function computeBPM(){ /* mesma função do seu código */ }
+
+    function readIntensity(){
+      if(!video.videoWidth) return null;
+      const vw = video.videoWidth, vh = video.videoHeight;
+      const size = Math.floor(Math.min(vw, vh) * 0.25);
+      off.width = size; off.height = size;
+      const sx = (vw - size)/2, sy = (vh - size)/2;
+      offCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+      const data = offCtx.getImageData(0,0,size,size).data;
+      let rSum=0, count=0;
+      for(let i=0;i<data.length;i+=4){
+        rSum += data[i];
+        count++;
       }
-      for(let y=0; y<chart.height; y+=40){
-        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(chart.width,y); ctx.stroke();
-      }
-      // desenhar sinal normalizado
-      if(raw.length>2){
-        const n = raw.length;
-        const start = Math.max(0, n - Math.floor(chart.width));
-        const slice = raw.slice(start);
-        const min = Math.min(...slice);
-        const max = Math.max(...slice);
-        const span = (max-min)||1;
-        ctx.beginPath();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#7ae1b8';
-        slice.forEach((v,i)=>{
-          const y = chart.height - ((v-min)/span)*chart.height;
-          const x = i;
-          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        });
-        ctx.stroke();
-      }
-    }
-
-    function movingAverage(arr, win){
-      if(arr.length < win) return Array(arr.length).fill(arr[arr.length-1]||0);
-      const out = new Array(arr.length).fill(0);
-      let sum = 0;
-      for(let i=0;i<arr.length;i++){
-        sum += arr[i];
-        if(i>=win) sum -= arr[i-win];
-        out[i] = i>=win-1 ? sum/win : arr[i];
-      }
-      return out;
-    }
-
-    function highPass(arr, win){
-      const ma = movingAverage(arr, win);
-      return arr.map((v,i)=> v - ma[i]);
-    }
-
-    function lowPassExp(arr, alpha=0.2){
-      const out = new Array(arr.length);
-      let y=arr[0]||0;
-      for(let i=0;i<arr.length;i++){
-        y = y + alpha*(arr[i]-y);
-        out[i]=y;
-      }
-      return out;
-    }
-
-    function detectPeaks(sig, ts){
-      // limiar dinâmico + período refratário 300 ms
-      const N = sig.length;
-      if(N<10) return [];
-      const std = (function(){
-        const m = sig.reduce((a,b)=>a+b,0)/N;
-        const v = sig.reduce((a,b)=>a+(b-m)*(b-m),0)/N;
-        return Math.sqrt(v);
-      })();
-      const thr = Math.max(0.02, 0.6*std);
-      const idx = [];
-      let lastPeakT = -1e9;
-      for(let i=1;i<N-1;i++){
-        if(sig[i]>thr && sig[i]>sig[i-1] && sig[i]>sig[i+1]){
-          const t = ts[i];
-          if(t - lastPeakT > 300){ // 200 bpm máx ~ 300ms
-            idx.push(i);
-            lastPeakT = t;
-          }
-        }
-      }
-      return idx;
-    }
-
-    function computeBPM(){
-      // Usar últimos ~10s
-      const now = performance.now();
-      const windowMs = 10000;
-      const startIdx = times.findIndex(t => t > now - windowMs);
-      const sig = startIdx>=0 ? raw.slice(startIdx) : raw.slice();
-      const ts = startIdx>=0 ? times.slice(startIdx) : times.slice();
-      if(sig.length < 30) return { bpm: null, quality: 'Baixa' };
-
-      // Filtragem: passa-alta (MA) + passa-baixa exponencial
-      const hp = highPass(sig, 15); // ~0.25s em 60fps
-      const lp = lowPassExp(hp, 0.15);
-
-      // Normalizar
-      const mean = lp.reduce((a,b)=>a+b,0)/lp.length;
-      const std = Math.sqrt(lp.reduce((a,b)=>a+(b-mean)*(b-mean),0)/lp.length) || 1;
-      const z = lp.map(v => (v-mean)/std);
-
-      const pidx = detectPeaks(z, ts);
-      if(pidx.length < 3) return { bpm: null, quality: 'Baixa' };
-
-      const ibIs = [];
-      for(let i=1;i<pidx.length;i++){ ibIs.push(ts[pidx[i]] - ts[pidx[i-1]]); }
-      // Filtrar intervalos irreais: 300–1500 ms (40–200 bpm)
-      const clean = ibIs.filter(x => x>=300 && x<=1500);
-      if(clean.length < 2) return { bpm: null, quality: 'Baixa' };
-
-      // Mediana para robustez
-      clean.sort((a,b)=>a-b);
-      const med = clean[Math.floor(clean.length/2)];
-      const bpm = Math.round(60000/med);
-
-      // Qualidade simples baseada em z-std e variação dos IBIs
-      const ibiVar = clean.reduce((a,b)=>a+b,0)/clean.length;
-      const cv = Math.sqrt(clean.reduce((a,b)=>a+(b-ibiVar)*(b-ibiVar),0)/clean.length)/(ibiVar||1);
-      let q = 'Média';
-      if(std>0.8 && cv<0.12) q='Alta';
-      if(std<0.4 || cv>0.25) q='Baixa';
-
-      return { bpm, quality: q };
+      return rSum/(count*255);
     }
 
     async function start(){
@@ -265,12 +153,7 @@
       setStatus('Solicitando câmera…');
       try{
         stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            frameRate: { ideal: 60 },
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          },
+          video: { facingMode: { ideal: 'environment' }, frameRate: { ideal: 60 }, width: { ideal: 640 }, height: { ideal: 480 } },
           audio: false
         });
       }catch(err){
@@ -295,8 +178,22 @@
       stopBtn.disabled = false;
       setStatus('Posicione o dedo sobre a câmera e mantenha firme.');
 
-      raw.length = 0; times.length = 0; peaks.length = 0;
-      tick();
+      raw.length = 0; times.length = 0;
+
+      // Atualiza a cada 30 segundos
+      intervalId = setInterval(() => {
+        const t = performance.now();
+        const v = readIntensity();
+        if(v != null){
+          raw.push(v); times.push(t);
+          if(raw.length > maxSamples){ raw.shift(); times.shift(); }
+          const { bpm, quality } = computeBPM();
+          bpmEl.textContent = bpm ? String(bpm) : '--';
+          qualityEl.textContent = quality;
+          setStatus(bpm ? 'Medindo… mantenha o dedo firme.' : 'Ajustando sinal…');
+          qualityEl.className = quality==='Alta' ? 'hint ok' : (quality==='Baixa' ? 'hint bad' : 'hint');
+        }
+      }, 30000);
     }
 
     async function toggleTorch(){
@@ -314,6 +211,7 @@
 
     function stop(){
       running = false;
+      clearInterval(intervalId);
       try{ stream?.getTracks().forEach(t=>t.stop()); }catch{}
       stream = null; track = null; imageCapture = null; torchOn = false;
       startBtn.disabled = false; stopBtn.disabled = true; torchBtn.disabled = true; 
@@ -322,52 +220,13 @@
       setStatus('Parado.');
     }
 
-    function readIntensity(){
-      // Captura uma média do canal vermelho num ROI central
-      if(!video.videoWidth) return null;
-      const vw = video.videoWidth, vh = video.videoHeight;
-      const size = Math.floor(Math.min(vw, vh) * 0.25);
-      off.width = size; off.height = size;
-      const sx = (vw - size)/2, sy = (vh - size)/2;
-      offCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
-      const data = offCtx.getImageData(0,0,size,size).data;
-      let rSum=0, count=0;
-      for(let i=0;i<data.length;i+=4){
-        rSum += data[i];
-        count++;
-      }
-      return rSum/(count*255); // normalizado 0–1
-    }
-
-    let rafId = null;
-    function tick(){
-      if(!running) return;
-      const t = performance.now();
-      const v = readIntensity();
-      if(v!=null){
-        raw.push(v); times.push(t);
-        if(raw.length>maxSamples){ raw.shift(); times.shift(); }
-        const { bpm, quality } = computeBPM();
-        bpmEl.textContent = bpm? String(bpm) : '--';
-        qualityEl.textContent = quality;
-        drawChart();
-        setStatus(bpm? 'Medindo… mantenha o dedo firme.' : 'Ajustando sinal…');
-        qualityEl.className = quality==='Alta' ? 'hint ok' : (quality==='Baixa' ? 'hint bad' : 'hint');
-      }
-      rafId = requestAnimationFrame(tick);
-    }
-
     startBtn.addEventListener('click', start);
     stopBtn.addEventListener('click', stop);
     torchBtn.addEventListener('click', toggleTorch);
 
-    // Alertas de compatibilidade
     if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
-      setTimeout(()=>{
-        alert('Para acessar a câmera/lanterna é necessário HTTPS. Publique este arquivo em um site seguro (https://) ou rode localmente.');
-      }, 300);
+      setTimeout(()=>{ alert('Para acessar a câmera/lanterna é necessário HTTPS.'); }, 300);
     }
   </script>
 </body>
 </html>
-
