@@ -106,13 +106,11 @@
     const qualityEl = document.getElementById('quality');
     const torchSupportEl = document.getElementById('torchSupport');
 
-    // === Estado ===
     let stream = null;
     let track = null;
     let imageCapture = null;
     let torchOn = false;
     let running = false;
-    let intervalId = null;
 
     const maxSamples = 1200;
     const raw = [];
@@ -120,29 +118,94 @@
 
     const off = document.createElement('canvas');
     const offCtx = off.getContext('2d', { willReadFrequently: true });
+    off.width = 100; off.height = 100;
 
     function setStatus(t){ statusEl.textContent = t; }
 
-    function movingAverage(arr, win){ /* mesma função do seu código */ }
-    function highPass(arr, win){ /* mesma função do seu código */ }
-    function lowPassExp(arr, alpha=0.2){ /* mesma função do seu código */ }
-    function detectPeaks(sig, ts){ /* mesma função do seu código */ }
-    function computeBPM(){ /* mesma função do seu código */ }
-
-    function readIntensity(){
-      if(!video.videoWidth) return null;
-      const vw = video.videoWidth, vh = video.videoHeight;
-      const size = Math.floor(Math.min(vw, vh) * 0.25);
-      off.width = size; off.height = size;
-      const sx = (vw - size)/2, sy = (vh - size)/2;
-      offCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
-      const data = offCtx.getImageData(0,0,size,size).data;
-      let rSum=0, count=0;
-      for(let i=0;i<data.length;i+=4){
-        rSum += data[i];
-        count++;
+    function movingAverage(arr, win){
+      if(arr.length < win) return Array(arr.length).fill(arr[arr.length-1]||0);
+      const out = new Array(arr.length).fill(0);
+      let sum = 0;
+      for(let i=0;i<arr.length;i++){
+        sum += arr[i];
+        if(i>=win) sum -= arr[i-win];
+        out[i] = i>=win-1 ? sum/win : arr[i];
       }
-      return rSum/(count*255);
+      return out;
+    }
+
+    function highPass(arr, win){
+      const ma = movingAverage(arr, win);
+      return arr.map((v,i)=> v - ma[i]);
+    }
+
+    function lowPassExp(arr, alpha=0.2){
+      const out = new Array(arr.length);
+      let y=arr[0]||0;
+      for(let i=0;i<arr.length;i++){
+        y = y + alpha*(arr[i]-y);
+        out[i]=y;
+      }
+      return out;
+    }
+
+    function detectPeaks(sig, ts){
+      const N = sig.length;
+      if(N<10) return [];
+      const std = (function(){
+        const m = sig.reduce((a,b)=>a+b,0)/N;
+        const v = sig.reduce((a,b)=>a+(b-m)*(b-m),0)/N;
+        return Math.sqrt(v);
+      })();
+      const thr = Math.max(0.02, 0.6*std);
+      const idx = [];
+      let lastPeakT = -1e9;
+      for(let i=1;i<N-1;i++){
+        if(sig[i]>thr && sig[i]>sig[i-1] && sig[i]>sig[i+1]){
+          const t = ts[i];
+          if(t - lastPeakT > 300){
+            idx.push(i);
+            lastPeakT = t;
+          }
+        }
+      }
+      return idx;
+    }
+
+    function computeBPM(){
+      const now = performance.now();
+      const windowMs = 10000;
+      const startIdx = times.findIndex(t => t > now - windowMs);
+      const sig = startIdx>=0 ? raw.slice(startIdx) : raw.slice();
+      const ts = startIdx>=0 ? times.slice(startIdx) : times.slice();
+      if(sig.length < 30) return { bpm: null, quality: 'Baixa' };
+
+      const hp = highPass(sig, 15);
+      const lp = lowPassExp(hp, 0.15);
+
+      const mean = lp.reduce((a,b)=>a+b,0)/lp.length;
+      const std = Math.sqrt(lp.reduce((a,b)=>a+(b-mean)*(b-mean),0)/lp.length) || 1;
+      const z = lp.map(v => (v-mean)/std);
+
+      const pidx = detectPeaks(z, ts);
+      if(pidx.length < 3) return { bpm: null, quality: 'Baixa' };
+
+      const ibIs = [];
+      for(let i=1;i<pidx.length;i++){ ibIs.push(ts[pidx[i]] - ts[pidx[i-1]]); }
+      const clean = ibIs.filter(x => x>=300 && x<=1500);
+      if(clean.length < 2) return { bpm: null, quality: 'Baixa' };
+
+      clean.sort((a,b)=>a-b);
+      const med = clean[Math.floor(clean.length/2)];
+      const bpm = Math.round(60000/med);
+
+      const ibiVar = clean.reduce((a,b)=>a+b,0)/clean.length;
+      const cv = Math.sqrt(clean.reduce((a,b)=>a+(b-ibiVar)*(b-ibiVar),0)/clean.length)/(ibiVar||1);
+      let q = 'Média';
+      if(std>0.8 && cv<0.12) q='Alta';
+      if(std<0.4 || cv>0.25) q='Baixa';
+
+      return { bpm, quality: q };
     }
 
     async function start(){
@@ -179,21 +242,7 @@
       setStatus('Posicione o dedo sobre a câmera e mantenha firme.');
 
       raw.length = 0; times.length = 0;
-
-      // Atualiza a cada 30 segundos
-      intervalId = setInterval(() => {
-        const t = performance.now();
-        const v = readIntensity();
-        if(v != null){
-          raw.push(v); times.push(t);
-          if(raw.length > maxSamples){ raw.shift(); times.shift(); }
-          const { bpm, quality } = computeBPM();
-          bpmEl.textContent = bpm ? String(bpm) : '--';
-          qualityEl.textContent = quality;
-          setStatus(bpm ? 'Medindo… mantenha o dedo firme.' : 'Ajustando sinal…');
-          qualityEl.className = quality==='Alta' ? 'hint ok' : (quality==='Baixa' ? 'hint bad' : 'hint');
-        }
-      }, 30000);
+      tick();
     }
 
     async function toggleTorch(){
@@ -211,7 +260,6 @@
 
     function stop(){
       running = false;
-      clearInterval(intervalId);
       try{ stream?.getTracks().forEach(t=>t.stop()); }catch{}
       stream = null; track = null; imageCapture = null; torchOn = false;
       startBtn.disabled = false; stopBtn.disabled = true; torchBtn.disabled = true; 
@@ -220,12 +268,47 @@
       setStatus('Parado.');
     }
 
+    function readIntensity(){
+      if(!video.videoWidth) return null;
+      const vw = video.videoWidth, vh = video.videoHeight;
+      const size = Math.floor(Math.min(vw, vh) * 0.25);
+      off.width = size; off.height = size;
+      const sx = (vw - size)/2, sy = (vh - size)/2;
+      offCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+      const data = offCtx.getImageData(0,0,size,size).data;
+      let rSum=0, count=0;
+      for(let i=0;i<data.length;i+=4){
+        rSum += data[i];
+        count++;
+      }
+      return rSum/(count*255);
+    }
+
+    let rafId = null;
+    function tick(){
+      if(!running) return;
+      const t = performance.now();
+      const v = readIntensity();
+      if(v!=null){
+        raw.push(v); times.push(t);
+        if(raw.length>maxSamples){ raw.shift(); times.shift(); }
+        const { bpm, quality } = computeBPM();
+        bpmEl.textContent = bpm? String(bpm) : '--';
+        qualityEl.textContent = quality;
+        setStatus(bpm? 'Medindo… mantenha o dedo firme.' : 'Ajustando sinal…');
+        qualityEl.className = quality==='Alta' ? 'hint ok' : (quality==='Baixa' ? 'hint bad' : 'hint');
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
     startBtn.addEventListener('click', start);
     stopBtn.addEventListener('click', stop);
     torchBtn.addEventListener('click', toggleTorch);
 
     if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
-      setTimeout(()=>{ alert('Para acessar a câmera/lanterna é necessário HTTPS.'); }, 300);
+      setTimeout(()=>{
+        alert('Para acessar a câmera/lanterna é necessário HTTPS. Publique este arquivo em um site seguro (https://) ou rode localmente.');
+      }, 300);
     }
   </script>
 </body>
