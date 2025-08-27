@@ -1,111 +1,373 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Monitor de Batimentos Cardíacos</title>
+  <title>Verificador de Batimentos (PPG)</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; background: #0b1220; color: #fff; }
-    video { display: none; }
-    canvas { display: none; }
-    #bpm { font-size: 2em; margin-top: 20px; }
-    button { margin: 10px; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    #startBtn { background: #7ae1b8; }
-    #stopBtn { background: #ff7070; }
-    #torchBtn { background: #8ea8ff; }
+    :root{
+      --bg:#0b1220; --card:#121a2b; --muted:#7c8aa5; --primary:#7ae1b8; --accent:#8ea8ff; --danger:#ff7070;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial; background:var(--bg); color:#eaf0ff}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    .title{font-weight:800;font-size:28px;line-height:1.1;margin:8px 0 2px}
+    .subtitle{color:var(--muted);margin:0 0 18px}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:900px){.grid{grid-template-columns:1.1fr .9fr}}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    button{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:700;cursor:pointer;transition:transform .05s ease,opacity .2s ease;}
+    button:active{transform:translateY(1px)}
+    .btn{background:linear-gradient(135deg,var(--primary),#67d2ff);color:#08222a}
+    .btn.sec{background:#24314d;color:#eaf0ff}
+    .btn.warn{background:var(--danger);color:#2b0f0f}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#0f1a32;color:var(--muted);font-size:12px}
+    .bpm{font-size:54px;font-weight:900;letter-spacing:1px}
+    .hint{font-size:13px;color:var(--muted)}
+    .ok{color:var(--primary)}
+    .bad{color:var(--danger)}
+    .video-wrap{position:relative;border-radius:14px;overflow:hidden;background:#000}
+    video{width:100%;height:auto;display:block;opacity:.35;filter:blur(.2px) saturate(1.2)}
+    .overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+    .ring{width:140px;height:140px;border-radius:50%;border:2px dashed rgba(255,255,255,.3);animation:spin 10s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    canvas{width:100%;height:220px;background:#091126;border-radius:12px}
+    .footer{font-size:12px;color:var(--muted);margin-top:8px}
+    .list{margin:6px 0 0 18px;color:var(--muted)}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0a1330;border:1px solid #1c2742;border-radius:6px;padding:2px 6px}
   </style>
 </head>
 <body>
-  <h1>Batimentos Cardíacos com a Câmera</h1>
-  <p>Coloque o dedo sobre a câmera traseira. Ative a lanterna para melhor resultado.</p>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" width="100" height="100"></canvas>
-  <div id="bpm">BPM: --</div>
-  <div>
-    <button id="startBtn">Iniciar</button>
-    <button id="stopBtn" disabled>Parar</button>
-    <button id="torchBtn" disabled>Lanterna</button>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <div class="pill">Experimento de fotopletismografia (PPG) no navegador</div>
+        <h1 class="title">Verificador de Batimentos</h1>
+        <p class="subtitle">Use a câmera + lanterna do celular. <strong>Não é dispositivo médico.</strong></p>
+      </div>
+      <div class="row">
+        <button id="startBtn" class="btn">Iniciar medição</button>
+        <button id="stopBtn" class="btn sec" disabled>Parar</button>
+        <button id="torchBtn" class="btn sec" title="Ativar/Desativar lanterna" disabled>Lanterna</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <div class="pill">BPM estimado</div>
+            <div class="bpm" id="bpm">--</div>
+            <div class="hint">Qualidade do sinal: <span id="quality">—</span> | Estado: <span id="status">Aguardando…</span></div>
+          </div>
+          <div>
+            <div class="pill" id="torchSupport">Torch: desconhecido</div>
+          </div>
+        </div>
+        <canvas id="chart" width="900" height="240"></canvas>
+        <div class="footer">Dica: cubra totalmente a câmera traseira com a ponta do dedo e evite movimentar. Se possível, ative a lanterna.</div>
+      </div>
+
+      <div class="card">
+        <div class="video-wrap">
+          <video id="video" playsinline autoplay muted></video>
+          <div class="overlay"><div class="ring"></div></div>
+        </div>
+        <p class="hint" style="margin-top:10px">
+          Alguns celulares só permitem lanterna via navegador no <strong>Chrome Android</strong> (HTTPS). Em iPhone, a lanterna pelo site pode não funcionar; tente uma luz externa.
+        </p>
+        <details>
+          <summary class="hint">Como funciona (PPG)?</summary>
+          <ul class="list">
+            <li>A câmera capta pequenas variações de luz (sobretudo no canal vermelho) ao atravessar o seu dedo.</li>
+            <li>Filtramos o sinal, identificamos picos periódicos e calculamos o intervalo entre batidas.</li>
+            <li>Exibimos a média recente (mediana) dos intervalos para estimar o BPM.</li>
+          </ul>
+        </details>
+        <details>
+          <summary class="hint">Avisos importantes</summary>
+          <ul class="list">
+            <li>Experimento educacional. <strong>Não use para diagnósticos.</strong></li>
+            <li>Mantenha o dedo apoiado com leve pressão; se doer, pare.</li>
+            <li>Evite aquecer demais o dedo com a lanterna; use por períodos curtos.</li>
+          </ul>
+        </details>
+      </div>
+    </div>
   </div>
 
   <script>
+    // === Elementos ===
     const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const bpmDisplay = document.getElementById('bpm');
+    const chart = document.getElementById('chart');
+    const ctx = chart.getContext('2d');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const torchBtn = document.getElementById('torchBtn');
+    const bpmEl = document.getElementById('bpm');
+    const statusEl = document.getElementById('status');
+    const qualityEl = document.getElementById('quality');
+    const torchSupportEl = document.getElementById('torchSupport');
 
-    let reds = [];
-    let timestamps = [];
+    // === Estado ===
     let stream = null;
     let track = null;
+    let imageCapture = null;
     let torchOn = false;
+    let running = false;
 
-    function processFrame() {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      let sum = 0;
-      for (let i = 0; i < frame.data.length; i += 4) {
-        sum += frame.data[i]; // canal vermelho
+    // Buffers de sinal
+    const maxSamples = 1200; // ~20s a 60 fps
+    const raw = []; // amostras de intensidade
+    const times = []; // timestamps ms
+    const peaks = []; // timestamps de picos detectados
+
+    // Canvas offscreen para ler pixels
+    const off = document.createElement('canvas');
+    const offCtx = off.getContext('2d', { willReadFrequently: true });
+    off.width = 100; off.height = 100;
+
+    function setStatus(t){ statusEl.textContent = t; }
+
+    function drawChart(){
+      // fundo
+      ctx.clearRect(0,0,chart.width,chart.height);
+      ctx.fillStyle = '#08122a';
+      ctx.fillRect(0,0,chart.width,chart.height);
+      // grade simples
+      ctx.strokeStyle = 'rgba(255,255,255,.06)';
+      ctx.lineWidth = 1;
+      for(let x=0; x<chart.width; x+=90){
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,chart.height); ctx.stroke();
       }
-      const avgRed = sum / (frame.data.length / 4);
-      reds.push(avgRed);
-      timestamps.push(Date.now());
-
-      if (reds.length > 100) {
-        detectBeats();
-        reds = [];
-        timestamps = [];
+      for(let y=0; y<chart.height; y+=40){
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(chart.width,y); ctx.stroke();
+      }
+      // desenhar sinal normalizado
+      if(raw.length>2){
+        const n = raw.length;
+        const start = Math.max(0, n - Math.floor(chart.width));
+        const slice = raw.slice(start);
+        const min = Math.min(...slice);
+        const max = Math.max(...slice);
+        const span = (max-min)||1;
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#7ae1b8';
+        slice.forEach((v,i)=>{
+          const y = chart.height - ((v-min)/span)*chart.height;
+          const x = i;
+          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
       }
     }
 
-    function detectBeats() {
-      let beats = 0;
-      for (let i = 1; i < reds.length - 1; i++) {
-        if (reds[i] > reds[i - 1] && reds[i] > reds[i + 1]) {
-          beats++;
+    function movingAverage(arr, win){
+      if(arr.length < win) return Array(arr.length).fill(arr[arr.length-1]||0);
+      const out = new Array(arr.length).fill(0);
+      let sum = 0;
+      for(let i=0;i<arr.length;i++){
+        sum += arr[i];
+        if(i>=win) sum -= arr[i-win];
+        out[i] = i>=win-1 ? sum/win : arr[i];
+      }
+      return out;
+    }
+
+    function highPass(arr, win){
+      const ma = movingAverage(arr, win);
+      return arr.map((v,i)=> v - ma[i]);
+    }
+
+    function lowPassExp(arr, alpha=0.2){
+      const out = new Array(arr.length);
+      let y=arr[0]||0;
+      for(let i=0;i<arr.length;i++){
+        y = y + alpha*(arr[i]-y);
+        out[i]=y;
+      }
+      return out;
+    }
+
+    function detectPeaks(sig, ts){
+      // limiar dinâmico + período refratário 300 ms
+      const N = sig.length;
+      if(N<10) return [];
+      const std = (function(){
+        const m = sig.reduce((a,b)=>a+b,0)/N;
+        const v = sig.reduce((a,b)=>a+(b-m)*(b-m),0)/N;
+        return Math.sqrt(v);
+      })();
+      const thr = Math.max(0.02, 0.6*std);
+      const idx = [];
+      let lastPeakT = -1e9;
+      for(let i=1;i<N-1;i++){
+        if(sig[i]>thr && sig[i]>sig[i-1] && sig[i]>sig[i+1]){
+          const t = ts[i];
+          if(t - lastPeakT > 300){ // 200 bpm máx ~ 300ms
+            idx.push(i);
+            lastPeakT = t;
+          }
         }
       }
-      const duration = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
-      const bpm = Math.round((beats / duration) * 60);
-      bpmDisplay.textContent = `BPM: ${bpm}`;
+      return idx;
     }
 
-    async function start() {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    function computeBPM(){
+      // Usar últimos ~10s
+      const now = performance.now();
+      const windowMs = 10000;
+      const startIdx = times.findIndex(t => t > now - windowMs);
+      const sig = startIdx>=0 ? raw.slice(startIdx) : raw.slice();
+      const ts = startIdx>=0 ? times.slice(startIdx) : times.slice();
+      if(sig.length < 30) return { bpm: null, quality: 'Baixa' };
+
+      // Filtragem: passa-alta (MA) + passa-baixa exponencial
+      const hp = highPass(sig, 15); // ~0.25s em 60fps
+      const lp = lowPassExp(hp, 0.15);
+
+      // Normalizar
+      const mean = lp.reduce((a,b)=>a+b,0)/lp.length;
+      const std = Math.sqrt(lp.reduce((a,b)=>a+(b-mean)*(b-mean),0)/lp.length) || 1;
+      const z = lp.map(v => (v-mean)/std);
+
+      const pidx = detectPeaks(z, ts);
+      if(pidx.length < 3) return { bpm: null, quality: 'Baixa' };
+
+      const ibIs = [];
+      for(let i=1;i<pidx.length;i++){ ibIs.push(ts[pidx[i]] - ts[pidx[i-1]]); }
+      // Filtrar intervalos irreais: 300–1500 ms (40–200 bpm)
+      const clean = ibIs.filter(x => x>=300 && x<=1500);
+      if(clean.length < 2) return { bpm: null, quality: 'Baixa' };
+
+      // Mediana para robustez
+      clean.sort((a,b)=>a-b);
+      const med = clean[Math.floor(clean.length/2)];
+      const bpm = Math.round(60000/med);
+
+      // Qualidade simples baseada em z-std e variação dos IBIs
+      const ibiVar = clean.reduce((a,b)=>a+b,0)/clean.length;
+      const cv = Math.sqrt(clean.reduce((a,b)=>a+(b-ibiVar)*(b-ibiVar),0)/clean.length)/(ibiVar||1);
+      let q = 'Média';
+      if(std>0.8 && cv<0.12) q='Alta';
+      if(std<0.4 || cv>0.25) q='Baixa';
+
+      return { bpm, quality: q };
+    }
+
+    async function start(){
+      if(running) return;
+      running = true;
+      bpmEl.textContent = '--';
+      qualityEl.textContent = '—';
+      setStatus('Solicitando câmera…');
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            frameRate: { ideal: 60 },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        });
+      }catch(err){
+        setStatus('Permissão negada ou indisponível.');
+        console.error(err);
+        running = false;
+        return;
+      }
       video.srcObject = stream;
       track = stream.getVideoTracks()[0];
-      torchBtn.disabled = false;
-      setInterval(processFrame, 100);
+      try{
+        imageCapture = new ImageCapture(track);
+        torchBtn.disabled = false;
+        torchSupportEl.textContent = 'Torch: disponível (pode depender do navegador)';
+      }catch(e){
+        imageCapture = null;
+        torchBtn.disabled = true;
+        torchSupportEl.textContent = 'Torch: indisponível';
+      }
+
       startBtn.disabled = true;
       stopBtn.disabled = false;
+      setStatus('Posicione o dedo sobre a câmera e mantenha firme.');
+
+      raw.length = 0; times.length = 0; peaks.length = 0;
+      tick();
     }
 
-    function stop() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      torchBtn.disabled = true;
-      bpmDisplay.textContent = 'BPM: --';
-    }
-
-    async function toggleTorch() {
-      if (!track) return;
-      try {
+    async function toggleTorch(){
+      if(!track) return;
+      try{
         torchOn = !torchOn;
         await track.applyConstraints({ advanced: [{ torch: torchOn }] });
         torchBtn.textContent = torchOn ? 'Lanterna (Ligada)' : 'Lanterna';
-      } catch (err) {
-        alert('Não foi possível controlar a lanterna neste dispositivo.');
+        setStatus(torchOn ? 'Lanterna ligada.' : 'Lanterna desligada.');
+      }catch(e){
+        console.warn('Torch falhou:', e);
+        setStatus('Não foi possível controlar a lanterna neste dispositivo.');
       }
+    }
+
+    function stop(){
+      running = false;
+      try{ stream?.getTracks().forEach(t=>t.stop()); }catch{}
+      stream = null; track = null; imageCapture = null; torchOn = false;
+      startBtn.disabled = false; stopBtn.disabled = true; torchBtn.disabled = true; 
+      bpmEl.textContent = '--';
+      qualityEl.textContent = '—';
+      setStatus('Parado.');
+    }
+
+    function readIntensity(){
+      // Captura uma média do canal vermelho num ROI central
+      if(!video.videoWidth) return null;
+      const vw = video.videoWidth, vh = video.videoHeight;
+      const size = Math.floor(Math.min(vw, vh) * 0.25);
+      off.width = size; off.height = size;
+      const sx = (vw - size)/2, sy = (vh - size)/2;
+      offCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+      const data = offCtx.getImageData(0,0,size,size).data;
+      let rSum=0, count=0;
+      for(let i=0;i<data.length;i+=4){
+        rSum += data[i];
+        count++;
+      }
+      return rSum/(count*255); // normalizado 0–1
+    }
+
+    let rafId = null;
+    function tick(){
+      if(!running) return;
+      const t = performance.now();
+      const v = readIntensity();
+      if(v!=null){
+        raw.push(v); times.push(t);
+        if(raw.length>maxSamples){ raw.shift(); times.shift(); }
+        const { bpm, quality } = computeBPM();
+        bpmEl.textContent = bpm? String(bpm) : '--';
+        qualityEl.textContent = quality;
+        drawChart();
+        setStatus(bpm? 'Medindo… mantenha o dedo firme.' : 'Ajustando sinal…');
+        qualityEl.className = quality==='Alta' ? 'hint ok' : (quality==='Baixa' ? 'hint bad' : 'hint');
+      }
+      rafId = requestAnimationFrame(tick);
     }
 
     startBtn.addEventListener('click', start);
     stopBtn.addEventListener('click', stop);
     torchBtn.addEventListener('click', toggleTorch);
+
+    // Alertas de compatibilidade
+    if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
+      setTimeout(()=>{
+        alert('Para acessar a câmera/lanterna é necessário HTTPS. Publique este arquivo em um site seguro (https://) ou rode localmente.');
+      }, 300);
+    }
   </script>
 </body>
 </html>
+
