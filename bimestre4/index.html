@@ -34,7 +34,6 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .footer{font-size:12px;color:var(--muted);margin-top:8px}
     .list{margin:6px 0 0 18px;color:var(--muted)}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0a1330;border:1px solid #1c2742;border-radius:6px;padding:2px 6px}
   </style>
 </head>
 <body>
@@ -96,7 +95,6 @@
   </div>
 
   <script>
-    // === Elementos ===
     const video = document.getElementById('video');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -216,7 +214,12 @@
       setStatus('Solicitando câmera…');
       try{
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, frameRate: { ideal: 60 }, width: { ideal: 640 }, height: { ideal: 480 } },
+          video: {
+            facingMode: { ideal: 'environment' },
+            frameRate: { ideal: 60 },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
           audio: false
         });
       }catch(err){
@@ -306,9 +309,7 @@
     torchBtn.addEventListener('click', toggleTorch);
 
     if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
-      setTimeout(()=>{
-        alert('Para acessar a câmera/lanterna é necessário HTTPS. Publique este arquivo em um site seguro (https://) ou rode localmente.');
-      }, 300);
+      setTimeout(()=>{ alert('Para acessar a câmera/lanterna é necessário HTTPS.'); }, 300);
     }
   </script>
 </body>
